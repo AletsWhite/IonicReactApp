@@ -17,11 +17,53 @@ import {
     IonInput,
     IonButton,
     IonToast,
+    useIonToast,
+    IonImg,
+    IonFab,
+    IonFabButton,
+    IonIcon,
 } from '@ionic/react';
 import ActivitiesContext, { ActivityType } from '../../data/activities-context';
 import { useHistory } from 'react-router-dom';
+import usePhotoGallery from '../../hooks/usePhotoGallery';
+import { ActionSheet, ActionSheetButtonStyle } from '@capacitor/action-sheet';
+import { camera } from 'ionicons/icons';
+
 
 const AddActivity: React.FC = () => {
+
+    const [present, dismiss] = useIonToast();
+  async function showActionMenu(path: string) {
+    const result = await ActionSheet.showActions({
+      title: path,
+      message: 'Select an option to perform',
+      options: [
+        {
+          title: 'cancel',
+        },
+        {
+          title: 'Share',
+        },
+        {
+          title: 'Remove',
+          style: ActionSheetButtonStyle.Destructive,
+        },
+      ],
+    });
+    console.log('Action Sheet result:', result);
+    console.log(result.index);
+
+    if (result.index == 2) {
+      deletePhoto(path);
+      console.log("deleted");
+    }
+
+    present(result.index  + "", 3000);
+
+  }
+
+  const { photos, takePhoto, deletePhoto } = usePhotoGallery();
+  console.log(photos);
 
     const history = useHistory();
     const activitiesCtxt = useContext(ActivitiesContext);
@@ -102,7 +144,19 @@ const AddActivity: React.FC = () => {
                                 </IonButton>
                             </IonCol>
                         </IonRow>
+                        <IonRow>
+                            {photos.map((photo, index) => (
+                                <IonCol size="6" key={index}>
+                                    <IonImg onClick={() => showActionMenu(photo.filepath)} src={photo.webviewPath} />
+                                </IonCol>
+                        ))}
+                        </IonRow>
                     </IonGrid>
+                    <IonFab vertical='bottom' horizontal='center' slot='fixed'>
+                        <IonFabButton onClick={() => takePhoto()}>
+                            <IonIcon icon={camera}></IonIcon>
+                        </IonFabButton>
+                    </IonFab>
                 </IonContent>
             </IonPage>
         </React.Fragment>
